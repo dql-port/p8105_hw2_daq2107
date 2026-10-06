@@ -8,7 +8,9 @@ output: github_document
 ## Loading necessary libraries for this assignment:
 
 ```{r libraries}
+
 library(tidyverse)
+library(dplyr)
 ```
 
 ######### realtive path just means do not set a working directory at all, right?
@@ -18,6 +20,7 @@ library(tidyverse)
 To start, we will load the data. We first need to recognize that the 'NYC Transit' data is coming from a 'csv' file. So we need to use the 'read_csv' function (part of tidyverse package) to import our file and then use the 'janitor' package to clean the names of columns which, after inspecting the file, contains complicated characters like uppercase letters:
 
 ```{r loading_csv}
+
 nyc_transit =
   read_csv(file = "NYC_Transit_Subway_Entrance_And_Exit_Data.csv",
            na = c("","NA", ".") # We use this to make sure R understands these patterns as NA
@@ -27,18 +30,83 @@ nyc_transit =
 
 nyc_transit = janitor::clean_names(nyc_transit)
 ```
-Next, as per the assignment instructions, we need to select specific variables to keep. We can use the 'head' function to take a look at the variable names and then use the 'select' function to choose the variables we wish to keep:
+Next, as per the assignment instructions, we need to select specific variables to keep. We can use the 'head' function to take a look at the variable names and then use the 'select' function to choose the variables we wish to keep. We can also convert the 'entry' variable into a logical variable using the 'case_match' function (part of dplyr package) on the same code using the pipe operator:
 
 ```{r selecting_variables}
 
 head(nyc_transit) # Exploring the data
 str(nyc_transit) # Exploring the data more thoroughly
 
-#Choosing the variables we need per the assignment instructions:
+# Choosing the variables we need per the assignment instructions:
 
-select(nyc_transit, line, station_name, station_latitude, station_longitude, route1, route2, route3, route4, route5, route6, route7, route8, route9, route10, route11, entry, vending, entrance_type, ada)
+nyc_transit_cleaned = nyc_transit %>%
+  select(
+    line, station_name, station_latitude, station_longitude, route1, route2, route3, route4, route5, route6, route7, route8, route9, route10, route11, entry, vending, entrance_type, ada) %>% 
+  mutate( # We use mutate since we are modifying the data set
+    entry = case_match( # Converting YES/NO characters to logical type.
+      entry,
+      "YES" ~ TRUE, # Matching 'YES' to 'TRUE'
+      "NO" ~ FALSE) # Matching 'NO' to 'FALSE'
+  )
+
+# Now, lets look at the newly modified data frame:
+
+str(nyc_transit_cleaned)
+nrow(nyc_transit_cleaned)
+ncol(nyc_transit_cleaned)
 
 ```
+#### Write a short paragraph about this dataset – explain briefly what variables the dataset contains, describe your data cleaning steps so far, and give the dimension (rows x columns) of the resulting dataset. Are these data tidy?
+
+##### how can we know if the data is tidy?
+##### need to add more to description
+
+**Dataset Description:** The newly modified dataset is comprised by 1868 observations and the 20 variables we selected above. We reduced the variable number from 32 to 20 variables using the 'select' function, and then mutated the 'entry' variable to change it from a character variable to a logic variable. I would now consider the data to be tidy, as we removed unnecessary variables for our analysis and coded for missing values.
+
+**How many distinct stations are there?**
+
+To answer this question, we can use the 'distinct' function (also part of the dplyr package)
+
+```{r unique_stations}
+
+distinct(nyc_transit_cleaned, station_name, line) # Number of distinct stations
+
+```
+
+From the output, we can see that there are 465 distinct stations.
+
+**How many stations are ADA compliant?**
+
+For this, we consider that the ADA compliance variable is logical. Therefore, we can filter for the values of 'ada' that are TRUE, and then count the number of rows:
+
+```{r ada_compliant}
+
+nyc_transit_cleaned %>% 
+  filter(ada == TRUE) %>% # Filtering for ADA compliant stations
+  distinct(station_name, line) %>% # Running on unique stations
+  nrow()
+
+```
+
+From the output, we can see that there are 84 distinct ADA compliant stations.
+
+**What proportion of station entrances / exits without vending allow entrance?**
+
+We need to remember that we transformed the 'entry' variable into a logical variable (TRUE/FALSE),
+which, as we have seen in the previous Homework, can be counted in 1 and 0, respectively. Therefore, we can just take an average to get the proportion of entrances and exits after we filter for no vending:
+
+```{r entrance_exit_prop}
+
+nyc_transit_cleaned %>% 
+  filter(vending == "NO") %>% 
+  # I know the following syntax from a class I took last semester:
+  summarise(prop_entrance = mean(entry, na.rm = TRUE))
+
+```
+From the output, we see that the proportion of entrance to exits in unique stations is 37.7%
+
+
+
 
 
 
