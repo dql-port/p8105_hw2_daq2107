@@ -19,7 +19,7 @@ library(readxl) # For Problem 2
 
 ######### realtive path just means do not set a working directory at all? Or making folder only?
 
-## Problem 1
+## Problem 1: NYC Transit Data
 
 To start, we will load the data. We first need to recognize that the 'NYC Transit' data is coming from a 'csv' file. So we need to use the 'read_csv' function (part of tidyverse package) to import our file and then use the 'janitor' package to clean the names of columns which, after inspecting the file, contains complicated characters like uppercase letters:
 
@@ -177,7 +177,7 @@ From the output, we see that there are 17 distinct stations that both serve the 
 ############## ask about .DS_Store file????
 
 
-## Problem 2
+## Problem 2: The Trash Wheels
 
 The _Mr. Trash Wheel_ dataset is an Excel file, and therefore, we need to use the _readxl_ package to import our data:
 
@@ -307,7 +307,66 @@ combined_trash_df %>%
 
 **Answer:** From the output, we can see that _Professor Trash Wheel_ collected a total of 294.96 tons of trash. Additionally, _Gwynnda the Good Wheel_ collected a total of 18,120 cigarette butts in June, 2022 alone.
 
-## Problem 3
+## Problem 3: Alzheimer’s Disease (AD) & Mild Cognitive Impairment (MCI)
+
+Let's first import the data. We see that these are CSV files, so we can use the same import process as in Problem 1:
+
+####### HOW DO WE KNOW WHICH ONES ARE MISSING MCI AT BASELINE???????
+
+```{r MCI_baseline_import}
+
+# After inspecting the CSV, we realize that the first row is just general descriptors, so can use the 'skip' argument when importing the file to skip this first row.
+
+# We can also make use of 'case_match' like we did in previous problems to make sure the sex and APOE4 variables are stored not as numerical variables:
+
+baseline_df =
+  read_csv(file = "./HW2_Data/data_mci/MCI_baseline.csv",
+           skip = 1,
+           na = c("","NA", ".") # We use this to make sure R understands these patterns as NA
+           ) %>% 
+janitor::clean_names() %>% # Cleaning names
+  mutate(
+    sex = case_match(
+      sex,
+      1 ~ "Male", # Matching '1' to 'Male'
+      0 ~ "Female"), # Matching '0' to 'Female'
+    apoe4 = case_match(
+      apoe4,
+      1 ~ "Carrier", # Matching '1' to 'Carrier'
+      0 ~ "Non-Carrier") # Matching '0' to 'Non-Carrier'
+    )
+
+str(baseline_df) #Inspecting the data frame
+
+
+```
+
+
+
+
+
+######## HOW ELSE TO TIDY?
+
+```{r MCI_amyloid_import}
+
+# Upon inspection, we notice that the timepoints are saved as characters. So we modify to numeric since they are years.
+
+amyloid_df =
+  read_csv(file = "./HW2_Data/data_mci/mci_amyloid.csv",
+           skip = 1,
+           na = c("","NA", ".") # We use this to make sure R understands these patterns as NA
+           ) %>% 
+janitor::clean_names() %>% # Cleaning names
+  mutate(
+    baseline = as.numeric(baseline),
+    time_2 = as.numeric(time_2),
+    time_4 = as.numeric(time_4),
+    time_6 = as.numeric(time_6),
+    time_8 = as.numeric(time_8)
+    )
+
+str(amyloid_df) #Inspecting the data frame
+```
 
 
 
