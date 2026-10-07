@@ -13,7 +13,7 @@ library(tidyverse)
 library(dplyr)
 ```
 
-######### realtive path just means do not set a working directory at all, right?
+######### realtive path just means do not set a working directory at all? Or making folder only?
 
 ## Problem 1
 
@@ -22,7 +22,7 @@ To start, we will load the data. We first need to recognize that the 'NYC Transi
 ```{r loading_csv}
 
 nyc_transit =
-  read_csv(file = "NYC_Transit_Subway_Entrance_And_Exit_Data.csv",
+  read_csv(file = "HW2_Data/NYC_Transit_Subway_Entrance_And_Exit_Data.csv",
            na = c("","NA", ".") # We use this to make sure R understands these patterns as NA
            )
 
@@ -104,6 +104,78 @@ nyc_transit_cleaned %>%
 
 ```
 From the output, we see that the proportion of entrance to exits in unique stations is 37.7%
+
+*Reformatting Route Number & Route Name**
+
+Now, we can reformat our data so that the route number and the route name are distinct variables. To do this, we can use the 'pivot_longer' function. Following the example covered in lecture:
+
+```{r route_name_and_number}
+
+# I noticed that some route variables are character variables and others are numeric variables, so I am converting them all to characters first using mutate before using pivot_longer:
+
+nyc_transit_tidier =
+  nyc_transit_cleaned %>%  # We use the cleaned data frame
+  mutate(route1 = as.character(route1),
+         route2 = as.character(route2),
+         route3 = as.character(route3),
+         route4 = as.character(route4),
+         route5 = as.character(route5),
+         route6 = as.character(route6),
+         route7 = as.character(route7),
+         route8 = as.character(route8),
+         route9 = as.character(route9),
+         route10 = as.character(route10),
+         route11 = as.character(route11)) %>% 
+  pivot_longer(
+    route1:route11, # This takes all the route columns
+    names_to = "route_number", # Making distinct route number
+    names_prefix = "route", # Removing the common prefix
+    values_to = "route_name") # Making distinct route name
+
+# Let's visualize:
+
+nyc_transit_tidier
+
+```
+
+**How many distinct stations serve the A train? **
+
+Now that we have created distinct route names, we can simply use the filter function to get a count of the stations serving the A train:
+
+```{r serves_A_train}
+
+nyc_transit_tidier %>% 
+  filter(route_name == "A") %>% # Filtering for A train
+  distinct(station_name, line) %>% # Running on unique stations, like in previous question
+  nrow() # Obtaining the number of observations
+
+```
+
+###### NYC transit says it is 47, need to check
+
+From the output, we see that there are 60 distinct stations serving the A train.
+
+**Of the stations that serve the A train, how many are ADA compliant?**
+
+To answer this question we can run the same code as above but filtering for both A train _and_  ADA compliance:
+
+```{r ADA_and_A_train}
+
+nyc_transit_tidier %>% 
+  filter(route_name == "A" & ada == TRUE) %>% # Filtering for A train and ADA compliance
+  distinct(station_name, line) %>% # Running on unique stations, like in previous question
+  nrow() # Obtaining the number of observations
+
+```
+
+From the output, we see that there are 17 distinct stations that both serve the A train _and_ are ADA compliant.
+
+## Problem 2
+
+
+
+
+
 
 
 
