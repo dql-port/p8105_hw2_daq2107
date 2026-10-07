@@ -5,12 +5,16 @@ date: "2026-10-06"
 output: github_document
 ---
 
+##### do I need to load dplyr? or included in tidyverse??
+
+
 ## Loading necessary libraries for this assignment:
 
 ```{r libraries}
 
 library(tidyverse)
 library(dplyr)
+library(readxl) # For Problem 2
 ```
 
 ######### realtive path just means do not set a working directory at all? Or making folder only?
@@ -22,7 +26,7 @@ To start, we will load the data. We first need to recognize that the 'NYC Transi
 ```{r loading_csv}
 
 nyc_transit =
-  read_csv(file = "HW2_Data/NYC_Transit_Subway_Entrance_And_Exit_Data.csv",
+  read_csv(file = "./HW2_Data/NYC_Transit_Subway_Entrance_And_Exit_Data.csv",
            na = c("","NA", ".") # We use this to make sure R understands these patterns as NA
            )
 
@@ -61,7 +65,9 @@ ncol(nyc_transit_cleaned)
 ##### how can we know if the data is tidy?
 ##### need to add more to description
 
-**Dataset Description:** The newly modified dataset is comprised by 1868 observations and the 20 variables we selected above. We reduced the variable number from 32 to 20 variables using the 'select' function, and then mutated the 'entry' variable to change it from a character variable to a logic variable. I would now consider the data to be tidy, as we removed unnecessary variables for our analysis and coded for missing values.
+**Dataset Description:** The newly modified dataset is comprised by 1868 observations and the 20 variables we selected above. The variables contain information on the transit division, the stations' name, latitude, and longitude, as well as the line names and route numbers. The dataset also contains some other infrastructure and managerial information, such as entrance type and location, what streets do exits lead to, ADA compliance, staffing status, ticket vending, among others.
+
+We reduced the variable number from 32 to 20 variables using the 'select' function, and then mutated the 'entry' variable to change it from a character variable to a logic variable. I would now consider the data to be tidy, as we removed unnecessary variables for our analysis and coded for missing values.
 
 **How many distinct stations are there?**
 
@@ -170,8 +176,33 @@ nyc_transit_tidier %>%
 
 From the output, we see that there are 17 distinct stations that both serve the A train _and_ are ADA compliant.
 
+##### ask about .DS_Store file????
+
+
 ## Problem 2
 
+The _Mr. Trash Wheel_ dataset is an Excel file, and therefore, we need to use the 'readxl' package to import our data. Reading documentation on the package pointed to the specific arguments needed to be used:
+
+```{r importing_excel}
+
+# We can use the 'sheet' argument to specify the sheet we want and the 'range' argument to help us omit non-data entries:
+
+trash_wheel_df = read_excel("./HW2_Data/202610 Trash Wheel Collection Data.xlsx",
+                            sheet = "Mr. Trash Wheel",
+                            range = "A2:N742")
+
+# We use the 'janitor' package to make sure we have reasonable variable names:
+
+trash_wheel_df = janitor::clean_names(trash_wheel_df)
+
+# We 
+
+
+trash_wheel_df #Inspecting the data
+
+```
+
+```
 
 
 
