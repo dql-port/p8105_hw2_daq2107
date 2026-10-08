@@ -9,15 +9,15 @@ output: github_document
 
 ```{r libraries}
 
-library(tidyverse) # Also loads 'dplyr'
+library(tidyverse) # Also loads 'dplyr' and 'readr' for data manipulation and export
 library(readxl) # For Problem 2
 ```
 
 ## Problem 1: NYC Transit Data
 
-To start, we will load and clean the data. We first need to recognize that the 'NYC Transit' data is coming from a 'csv' file. So we need to use the 'read_csv' function (part of tidyverse package) to import our file and then use the 'janitor' package to clean the names of columns which, after inspecting the file, contains complicated characters like uppercase letters. Notice also in the code below we are setting up a relative path to our data.
+To start, we will load and clean the data. We first need to recognize that the _NYC Transit_ data is coming from a _CSV_ file. So we need to use the _read_csv()_ function (part of tidyverse package) to import our file and then use the 'janitor' package to clean the names of columns which, after inspecting the file, contains complicated characters like uppercase letters. Notice also in the code below we are setting up a relative path to our data.
 
-Additionally, as per the assignment instructions, we need to select specific variables to keep. I used the 'head' function to take a look at the variable names and then used the 'select' function to choose the variables to keep. We can also convert the 'entry' variable into a logical variable using the 'case_match' function (part of dplyr package) on the same code using the pipe operator:
+Additionally, as per the assignment instructions, we need to select specific variables to keep. I used the _head()_ function to take a look at the variable names and then used the _select()_ function to choose the variables to keep. We can also convert the _entry_ variable into a logical variable using the _case_match()_ function (part of _dplyr_ package in _tidyverse_) on the same code using the pipe operator:
 
 ```{r loading_and_cleaning}
 
@@ -27,7 +27,8 @@ nyc_transit_cleaned =
            ) %>% 
 janitor::clean_names() %>% # Cleaning names
   select( # Choosing the variables we need per the assignment instructions:
-    line, station_name, station_latitude, station_longitude, route1, route2, route3, route4, route5, route6, route7, route8, route9, route10, route11, entry, vending, entrance_type, ada) %>%
+    line, station_name, station_latitude, station_longitude, route1, route2, route3, route4,
+    route5, route6, route7, route8, route9, route10, route11, entry, vending, entrance_type, ada) %>%
   mutate( # We use mutate since we are modifying the data set
     entry = case_match( # Converting YES/NO characters to logical type.
       entry,
@@ -41,9 +42,9 @@ head(nyc_transit_cleaned, 4)
 
 ```
 
-**Dataset Description:** The newly modified dataset is comprised by `r nrow(nyc_transit_df)` observations and the `r ncol(nyc_transit_df)` variables we selected above. The variables contain information on the transit division, the stations' name, latitude, and longitude, as well as the line names and route numbers. The dataset also contains some other infrastructure and managerial information, such as entrance type and location, what streets do exits lead to, ADA compliance, staffing status, ticket vending, among others.
+**Dataset Description:** The newly modified dataset is comprised by `r nrow(nyc_transit_cleaned)` observations and the `r ncol(nyc_transit_cleaned)` variables we selected above. The variables contain information on the transit division, the stations' name, latitude, and longitude, as well as the line names and route numbers. The dataset also contains some other infrastructure and managerial information, such as entrance type and location, what streets do exits lead to, ADA compliance, staffing status, ticket vending, among others.
 
-We reduced the variable number from 32 to `r ncol(nyc_transit_df)` variables using the 'select' function, and then mutated the 'entry' variable to change it from a character variable to a logic variable. I would now consider the data to be tidy, as we removed unnecessary variables for our analysis, coded for missing values, and have each row refer to a different observation and each column refer to a different measurement/variable.
+We reduced the variable number from 32 to `r ncol(nyc_transit_cleaned)` variables using the _select()_ function, and then mutated the _entry_ variable to change it from a character variable to a logic variable. I would now consider the data to be tidy, as we removed unnecessary variables for our analysis, coded for missing values, and have each row refer to a different observation and each column refer to a different measurement/variable.
 
 **How many distinct stations are there?**
 
@@ -55,7 +56,7 @@ distinct(nyc_transit_cleaned, station_name, line) %>% # Number of distinct stati
   nrow()
 ```
 
-From the output, we can see that there are `r nrow(distinct(nyc_transit_cleaned, station_name, line))` distinct stations.
+**Answer:** From the output, we can see that there are `r nrow(distinct(nyc_transit_cleaned, station_name, line))` distinct stations.
 
 **How many stations are ADA compliant?**
 
@@ -70,7 +71,7 @@ nyc_transit_cleaned %>%
 
 ```
 
-From the output, we can see that there are `r nrow(distinct(filter(nyc_transit_cleaned, ada == TRUE), line, station_name))` distinct ADA compliant stations.
+**Answer:** From the output, we can see that there are `r nrow(distinct(filter(nyc_transit_cleaned, ada == TRUE), line, station_name))` distinct ADA compliant stations.
 
 **What proportion of station entrances / exits without vending allow entrance?**
 
@@ -84,15 +85,16 @@ nyc_transit_cleaned %>%
   summarise(prop_entrance = mean(entry, na.rm = TRUE))
 
 ```
-From the output, we see that the proportion of entrance to exits in unique stations is `r nyc_transit_cleaned %>% filter(vending == "NO") %>% pull(entry) %>% mean(na.rm = TRUE)`.
+**Answer:** From the output, we see that the proportion of entrance to exits in unique stations is `r nyc_transit_cleaned %>% filter(vending == "NO") %>% pull(entry) %>% mean(na.rm = TRUE) %>% round(2)`.
 
-*Reformatting Route Number & Route Name**
+**Reformatting Route Number & Route Name**
 
 Now, we can reformat our data so that the route number and the route name are distinct variables. To do this, we can use the _pivot_longer()_ function. Following the example covered in lecture:
 
 ```{r route_name_and_number}
 
-# I noticed that some route variables are character variables and others are numeric variables, so I am converting them all to characters first using mutate before using pivot_longer:
+# I noticed that some route variables are character variables and others are numeric variables,
+# so I am converting them all to characters first using mutate before using pivot_longer:
 
 nyc_transit_tidier =
   nyc_transit_cleaned %>%  # We use the cleaned data frame
@@ -119,7 +121,7 @@ head(nyc_transit_tidier, 4) # First four elements for tidiness
 
 ```
 
-**How many distinct stations serve the A train? **
+**How many distinct stations serve the A train?**
 
 Now that we have created distinct route names, we can simply use the _filter()_ function to get a count of the stations serving the A train:
 
@@ -135,9 +137,7 @@ serve_A_train
 
 ```
 
-############# NYC transit says it is 47, need to check
-
-From the output, we see that there are `r serve_A_train` distinct stations serving the A train.
+**Answer:** From the output, we see that there are `r serve_A_train` distinct stations serving the A train.
 
 **Of the stations that serve the A train, how many are ADA compliant?**
 
@@ -155,7 +155,7 @@ ada_and_A
 
 ```
 
-From the output, we see that there are `r serve_A_train` distinct stations that both serve the A train _and_ are ADA compliant.
+**Answer:** From the output, we see that there are `r ada_and_A` distinct stations that both serve the A train _and_ are ADA compliant.
 
 ## Problem 2: The Trash Wheels
 
@@ -163,7 +163,8 @@ The _Mr. Trash Wheel_ dataset is an Excel file, and therefore, we need to use th
 
 ```{r importing_cleaning_mrtrashwheel}
 
-# We can use the 'sheet' argument to specify the sheet we want and the 'range' argument to help us omit non-data entries.
+# We can use the 'sheet' argument to specify the sheet we want and the 'range' argument to help
+# us omit non-data entries.
 
 trash_wheel_df = read_excel("./HW2_Data/202610 Trash Wheel Collection Data.xlsx",
                             sheet = "Mr. Trash Wheel",
@@ -192,7 +193,7 @@ prof_wheel_df = read_excel("./HW2_Data/202610 Trash Wheel Collection Data.xlsx",
   janitor::clean_names() %>% # Cleaning names
   drop_na(dumpster) # Dropping missing values
 
-prof_wheel_df #Inspecting the cleaned data frame
+head(prof_wheel_df, 4) #Inspecting the cleaned data frame
 
 # For 'Gwynnda the Good Wheel of the W':
 
@@ -202,7 +203,7 @@ gwynnda_wheel_df = read_excel("./HW2_Data/202610 Trash Wheel Collection Data.xls
   janitor::clean_names() %>% # Cleaning names
   drop_na(dumpster) # Dropping missing values
 
-gwynnda_wheel_df #Inspecting the cleaned data frame
+head(gwynnda_wheel_df, 4) #Inspecting the cleaned data frame
 
 
 ```
@@ -211,7 +212,9 @@ Now that we have created three separate data frames for the specified Excel shee
 
 ```{r combining_trash_sheets}
 
-# On my first attempt, I got an error that in one data frame 'year' and 'plastic_bottles' were characters, and in another they were doubles (numbers). So I added an as.numeric conversion within mutate to resolve the issue:
+# On my first attempt, I got an error that in one data frame 'year' and 'plastic_bottles' were
+# characters, and in another they were doubles (numbers). So I added an as.numeric conversion
+# within mutate to resolve the issue:
 
 trash_wheel_df =
   trash_wheel_df %>% 
@@ -238,25 +241,22 @@ combined_trash_df =
 
 # Inspecting the newly combined data frame:
 
-combined_trash_df
-names(combined_trash_df)
-
+head(combined_trash_df, 4)
 ```
 
-**Data description:**
+**Data Description:** We now have a combined data frame! It is comprised of `r ncol(combined_trash_df)` variables and `r nrow(combined_trash_df)` observations. Some key variables included in the data frame are the tons of trash collected by each dumpster, the amount of homes powered, and a break down of the number of plastic items collected, such as bottles, bags and cigarette butts.
 
-We now have a combined data frame! It is comprised of `r ncol(combined_trash_df)` variables and `r nrow(combined_trash_df)` observations. Some key variables included in the data frame are the tons of trash collected by each dumpster, the amount of homes powered, and a break down of the number of plastic items collected, such as bottles, bags and cigarette butts.
-
-Interestingly, across the three trash collectors, on average, they have collected approximately `r mean(pull(combined_trash_df, weight_tons), na.rm = TRUE)` tons of waste, `r mean(pull(combined_trash_df, cigarette_butts), na.rm = TRUE)` cigarette butts, and `r mean(pull(combined_trash_df, plastic_bags), na.rm = TRUE)` plastic bags between the years `r min(pull(combined_trash_df, year), na.rm = TRUE)` and `r max(pull(combined_trash_df, year), na.rm = TRUE)`.
+Interestingly, across the three trash collectors, on average, they have collected approximately `r round(mean(pull(combined_trash_df, weight_tons), na.rm = TRUE), 2)` tons of waste, `r format(round(mean(pull(combined_trash_df, cigarette_butts), na.rm = TRUE), 2), scientific = FALSE)` cigarette butts, and `r round(mean(pull(combined_trash_df, plastic_bags), na.rm = TRUE), 2)` plastic bags between the years `r min(pull(combined_trash_df, year), na.rm = TRUE)` and `r max(pull(combined_trash_df, year), na.rm = TRUE)`.
 
 **For available data, what was the total weight of trash collected by Professor Trash Wheel? What was the total number of cigarette butts collected by Gwynnda in June of 2022?**
 
-To answer these questions we can make use of the _filter_ function to delimit by the specified parameters:
+To answer these questions we can make use of the _filter()_ function to delimit by the specified parameters:
 
 ```{r specific_trash_questions}
 
 # For Professor Trash Wheel:
 
+total_weight_prof = 
   combined_trash_df %>% 
   filter(
     source_sheet == "Prof. Trash Wheel"
@@ -264,9 +264,12 @@ To answer these questions we can make use of the _filter_ function to delimit by
   pull(weight_tons) %>% 
   sum(na.rm = TRUE)
 
+total_weight_prof
+
 # For Gwynnda the Good Wheel:
 
-combined_trash_df %>% 
+total_cigs_Gwynnda =
+  combined_trash_df %>% 
   filter(
     source_sheet == "Gwynnda the Good Wheel" & 
             year == 2022 &
@@ -275,28 +278,28 @@ combined_trash_df %>%
   pull(cigarette_butts) %>% 
   sum(na.rm = TRUE)
 
+total_cigs_Gwynnda
 
 ```
 
-##### I dont thinnk I can use inline R code here?? ASSIGN TO VARIABLE AND CALL N INLINE R
-
-**Answer:** From the output, we can see that _Professor Trash Wheel_ collected a total of 294.96 tons of trash. Additionally, _Gwynnda the Good Wheel_ collected a total of 18,120 cigarette butts in June, 2022 alone.
+**Answer:** From the output, we can see that _Professor Trash Wheel_ collected a total of `r total_weight_prof` tons of trash. Additionally, _Gwynnda the Good Wheel of the West_ collected a total of `r format(round(total_cigs_Gwynnda, 2), scientific = FALSE)` in June, 2022 alone.
 
 ## Problem 3: Alzheimer’s Disease (AD) & Mild Cognitive Impairment (MCI)
 
-Let's first import the data. We see that these are CSV files, so we can use the same import process as in Problem 1:
+**Baseline**
+
+Per usual, let's first import and clean the data.
 
 ```{r MCI_baseline_import}
 
-# After inspecting the CSV, we realize that the first row is just general descriptors, so can use the 'skip' argument when importing the file to skip this first row.
-
-# We can also make use of 'case_match' like we did in previous problems to make sure the sex and APOE4 variables are stored not as numerical variables:
+# After inspecting the CSV, we realize that the first row is just general descriptors, so can 
+# use the 'skip' argument when importing the file to skip this first row.
 
 # Amount of people recruited:
 
 baseline_df =
   read_csv(file = "./HW2_Data/data_mci/MCI_baseline.csv",
-           skip = 1,
+           skip = 1, # Skipping first row
            na = c("","NA", ".") # We use this to make sure R understands these patterns as NA
            ) %>% 
 janitor::clean_names() %>% # Cleaning names
@@ -314,57 +317,70 @@ janitor::clean_names() %>% # Cleaning names
     age_at_onset > current_age | is.na(age_at_onset)
     )
  
+# Inspecting the data frame:
 
-
- #Inspecting the data frame
-
-##### DROP THOSE THAT HAD MCI AT BASELINE. USE FILTER
-##### HOW MANY DEVELOP MCI
-
-str(baseline_df) #Inspecting the data frame
-
+head(baseline_df, 4) 
 
 ```
-**Import Process and Data Frame Description:**  
-Mention main steps of cleaning and import
+**Import Process and Data Frame Description:**  Since the data is coming from a CSV file, we used _read_csv()_ in the same fashion as in Problem 1. We will also need to use the _skip_ argument within _read_csv_ given that the first row is plain descriptions of the variables. As we have previously done, we use the _janitor_ package to make sure our variable names are readable. We then use _case_match_ like we did in previous problems to make sure that the _sex_ and _apoe4_ variables are recoded as categorical rather than numerical variables.
+
+Finally, we need to make sure that the observations included comply with the inclusion criteria where they must not have had MCI by the time of baseline. To do this, we filter comparing that the _age_on_onset_ is greater than the _current_age_, retaining observations with NAs.
+
+The resulting data frame for the baseline demographic metrics is comprised of `r nrow(baseline_df)` observations and `r ncol(baseline_df)` variables, where each unit of observation corresponds to one study participant at baseline. The data frame contains information such as baseline age, sex, APOE4 carrier status, and age at MCI onset.
 
 **How many participants were recruited? Of these how many develop MCI? What is the average baseline age? What proportion of women in the study are APOE4 carriers?**
 
 ```{r baseline_analysis}
 
-nrow(baseline_df) # Number of recruits
+# Number of recruits:
 
-### 479 recruits
+pts_recruited = 
+  nrow(baseline_df) 
 
-# How many develop MCI:
+pts_recruited
 
-baseline_w_mci =
+# Develop MCI:
+
+develop_mci =
   baseline_df %>% 
-  drop_na(age_at_onset)
+  drop_na(age_at_onset) %>% 
+  nrow()
 
-#### 93 develop MCI
+develop_mci
 
+# Baseline age:
+
+baseline_age =
+  baseline_df %>% 
+  pull(current_age) %>% 
+  mean(na.rm = TRUE)
+
+baseline_age
+
+# Woman carrying APOE4:
 
 women_carrier =
   baseline_df %>% 
   filter(
-    sex == "Female" & apoe4 == "Carrier"
-  )
+    sex == "Female"
+  ) %>% 
+  summarize(
+    proportion_women = 
+      mean(apoe4 == "Carrier", na.rm = TRUE))
 
-### 63 women
+women_carrier
 
 ```
+**Answer:** From the outputs, we can see that there were a total of `r pts_recruited` participants recruited, of which `r develop_mci` developed MCI during the follow-up period. Moreover, the average baseline age for the study participants is `r round(baseline_age, 2)` and, from the participants who identify as female, `r women_carrier * 100`% of them are carriers of the APOE4 gene (proportion = `r women_carrier`).
 
+**Longitudinally observed biomarker values**
 
-
-
-
-
-######## HOW ELSE TO TIDY?
+We can clean the longitudinal amyloid biomarker data in a similar fashion as for the baseline data.
 
 ```{r MCI_amyloid_import}
 
-# Upon inspection, we notice that the timepoints are saved as characters. So we modify to numeric since they are years.
+# Upon inspection, we notice that the time points are saved as characters. So we modify to
+# numeric since they are years.
 
 amyloid_df =
   read_csv(file = "./HW2_Data/data_mci/mci_amyloid.csv",
@@ -372,7 +388,7 @@ amyloid_df =
            na = c("","NA", ".") # We use this to make sure R understands these patterns as NA
            ) %>% 
 janitor::clean_names() %>% # Cleaning names
-  mutate(
+  mutate( # Transforming to numeric types
     baseline = as.numeric(baseline),
     time_2 = as.numeric(time_2),
     time_4 = as.numeric(time_4),
@@ -381,7 +397,7 @@ janitor::clean_names() %>% # Cleaning names
     ) %>% 
    rename(
      id = study_id) %>% # We do this for the join later (see below)
-  pivot_longer(
+  pivot_longer( # Transforming into long format
     baseline:time_8, # This takes all the time columns
     names_to = "years_since_baseline", # Making distinct time variable
     names_prefix = "time_", # Removing the common prefix
@@ -391,41 +407,46 @@ janitor::clean_names() %>% # Cleaning names
       replace(years_since_baseline,
               years_since_baseline == "baseline", 0))
 
-head(baseline_df)
+# Inspecting the data:
 
-head(amyloid_df)
+head(amyloid_df, 4)
 
 ```
 
+**Import Process and Data Frame Description:** Similar to the baseline data, the longitudinal data is coming from a CSV file, so we use _read_csv()_ to import. We will again need to use the _skip_ argument within _read_csv_ given that the first row is descriptions of the variables. As we have previously done, we use the _janitor_ package to make sure our variable names are readable. We then use _mutate()_ and _as.numeric()_ to convert the variables representing the time since baseline into numeric variables. We then proceed to rename the _study_id_ variable into just _id_ so it matches our baseline data frame, and use _pivot_longer()_ to transform our data into a long format while creating the new variable _years_since_baseline_ to identify the timing of each measurement. We also created the _amyloid_ variable to contain the corresponding amyloid 40/20 ratio. We finally had to code our baseline variable as zero years to ensure that the years count remains consistent.
+
+The resulting data frame for the longitudinal amyloid data is comprised of `r nrow(amyloid_df)` observations and `r ncol(amyloid_df)` variables, where each unit of observation corresponds to one amyloid measurement for each participant during the follow-up period. Therefore, multiple rows may correspond to the same participant. The data frame contains variables for participant ID, time since baseline, and amyloid ratio.
+
+**Joining datasets**
+
+Since now both data frames have a common _id_ variable, we can use an _anti_join()_ to merge them.
 
 ```{r joining_amyloid_mci}
 
-# Since now both data frames have a common 'id' variable, we can use an antijoin to merge them. We need to run this process twice 
+anti_join(baseline_df, amyloid_df) # Finds people in baseline but not amyloid
 
-anti_join(baseline_df, amyloid_df) # Finds people in baseline but not amyloid (8 people)
-
-anti_join(amyloid_df, baseline_df) # Finds people in amyloid but not in baseline (80 people)
+anti_join(amyloid_df, baseline_df) # Finds people in amyloid but not in baseline
 
 merged_mci_df =
   inner_join(baseline_df, amyloid_df)
 
+# Inspecting our merge:
+
+head(merged_mci_df, 4)
+
 ```
 
+**Answer:** From our anti-join operations, we can see that there are `r anti_join(baseline_df, amyloid_df, by = "id") %>% distinct(id) %>% nrow()` participants who are in the baseline data frame but not the longitudinal amyloid data frame, while there are `r anti_join(amyloid_df, baseline_df, by = "id") %>% distinct(id) %>% nrow() ` participants who are in the longitudinal amyloid data frame and not in the baseline data frame.
 
+The combined data set is now comprised by `r nrow(merged_mci_df)` observations and `r ncol(merged_mci_df)` variables. Each observation unit corresponds to participants who were in both data frames (both baseline and follow-up) at a particular follow-up. The variables now include both demographics (current age, sex, APOE4 carrier status, age at MCI onset) and amyloid tracking data in years since baseline.
 
-###### MERGE SSO EVERY ROW ISS AN APPOINTMENT WHEN SOMEONNW GOT MEASUREMENTS TAKEN
-###### KEY TO MERGE -- SO WE USE A JOIN STUDY ID. NOTICE THEY ARE NAMED DIFFERENT
-
-
-##### HOW MANY MCI, DEMOGRPHICS, YADAYDA
-
-### EXPORT -- SET WITH RELATIVE PATH
-
+**We can finally export our merged data frame to our data directory**
 
 ```{r exporting}
 
-
+write_csv(merged_mci_df, 
+          "./HW2_Data/merged_mci_df.csv")
 
 ```
 
-
+## The End :) Have a wonderful day!
